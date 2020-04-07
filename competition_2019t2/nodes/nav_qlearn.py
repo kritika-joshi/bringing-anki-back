@@ -82,23 +82,51 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
         #converts image to gray scale
         gray_cropped_thresh = cv2.cvtColor(cropped_thresh, cv2.COLOR_BGR2GRAY)
 
-        # calculate moments of binary image
-        M = cv2.moments(gray_cropped_thresh)
- 
-        #calculate x,y coordinate of center
-        cX, cY = 0, 0
-        try:
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            print("calculated cY")
-        except:
-            cX=cv_image.shape[0]
-            cY=im_width/2
+        cropR = gray_cropped_thresh[0:h, 320 : 640]
+        bw1 = cropL
+        bw2 = cropR
 
-        print(cY)
+        M1 = cv2.moments(bw1)
+
+        if int(M1['m00'] !=0 ):
+            cX1 = int(M1["m10"] / M1["m00"])
+            cY1 = int(M1["m01"] / M1["m00"])
+        else:
+            cX1 = w/4
+            cY1 = 50
+            
+        M2 = cv2.moments(bw2)
+
+        if int(M2['m00'] !=0 ):
+            cX2 = int(M2["m10"] / M2["m00"])
+            cY2 = int(M2["m01"] / M2["m00"])
+        else:
+            cX2 = w/4
+            cY2 = 50
+        #set defaulft value if theres no m00
+
+        print(cX1,cY1, cX2, cY2)
+
+        cX = int((cX1 + cX2 + 320)/2)
+        cY = int((cY1 + cY2)/2) +380
+
+        # calculate moments of binary image
+        # M = cv2.moments(gray_cropped_thresh)
+ 
+        # #calculate x,y coordinate of center
+        # cX, cY = 0, 0
+        # try:
+        #     cX = int(M["m10"] / M["m00"])
+        #     cY = int(M["m01"] / M["m00"])
+        #     print("calculated cY")
+        # except:
+        #     cX=cv_image.shape[0]
+        #     cY=im_width/2
+
+        # print(cY)
 
         while(flag):
-            if(current_location > cY):
+            if(current_location > cX):
                 # current_location+= q_width
                 # state_arr_index+=1
                 print("In the if loop")
