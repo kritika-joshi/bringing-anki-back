@@ -30,43 +30,74 @@ class image_converter:
         except CvBridgeError as e:
             rospy.loginfo(e)
         
-        (cols,rows,channels) = cv_image.shape
+        (h,w,channels) = cv_image.shape
+        print("cv_img shape is:")
         print(cv_image.shape)
 
-        #thresholding for one picture
-        ret,thresh2 = cv2.threshold(cv_image,90,255,cv2.THRESH_BINARY_INV)
+        ret,thresh2 = cv2.threshold(cv_image,190,255,cv2.THRESH_BINARY)
 
-        cropped_thresh = thresh2[cols-200:cols, 0:rows]
+        cropped_thresh = thresh2[h-200:h, 0:w]
+        print("cropped thresh shape is")
         print(cropped_thresh.shape)
 
         #converts image to gray scale
         gray_cropped_thresh = cv2.cvtColor(cropped_thresh, cv2.COLOR_BGR2GRAY)
+        print("thresh2 shape is")
+        print(thresh2.shape)
+        print("gray_cropped_thresh is")
+        print(gray_cropped_thresh.shape)
 
-        # calculate moments of binary image
-        M = cv2.moments(gray_cropped_thresh)
-  
-        # calculate x,y coordinate of center
-        #cX, cY = 0, 0
-        try:
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            print(cX, cY)
+        #thresholding for one picture
+        # cv_image_gray = cv2.imread(cv_image,cv2.COLOR_BGR2GRAY)
+        # ret,thresh2 = cv2.threshold(cv_image_gray,190,255,cv2.THRESH_BINARY_INV)
 
-        except:
-            cX, cY = cols/2, rows/2
-            print(cX,cY)
+        # cropped_thresh = gray_cropped_thresh[h-100:h, 0:w]
+        # print(cropped_thresh.shape)
+        cropL = gray_cropped_thresh[0:h, 0: 320]
+        print("cropL shape is:")
+        print(cropL.shape)
+        cropR = gray_cropped_thresh[0:h, 320 : 640]
+        bw1 = cropL
+        bw2 = cropR
+
+
+
+        M1 = cv2.moments(bw1)
+
+        if int(M1['m00'] !=0 ):
+            cX1 = int(M1["m10"] / M1["m00"])
+            cY1 = int(M1["m01"] / M1["m00"])
+        else:
+            cX1 = w/4
+            cY1 = 50
             
+        M2 = cv2.moments(bw2)
 
-        cv2.circle(cv_image, (cX, cY + (cols-200)), 5, (255, 255, 255), -1)
-        cv2.putText(cv_image, "centroid", (cX - 25, (cY + (cols-40)) - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,  255, 255), 2)
+        if int(M2['m00'] !=0 ):
+            cX2 = int(M2["m10"] / M2["m00"])
+            cY2 = int(M2["m01"] / M2["m00"])
+        else:
+            cX2 = w/4
+            cY2 = 50
+        #set defaulft value if theres no m00
+
+        print(cX1,cY1, cX2, cY2)
+
+        cX = int((cX1 + cX2 + 320)/2)
+        cY = int((cY1 + cY2)/2) +380
+
+
+     
+        cv2.circle(cv_image, (cX, cY + (h-200)), 5, (255, 255, 255), -1)
+        cv2.putText(cv_image, "centroid", (cX - 25, (cY + (h-40)) - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,  255, 255), 2)
         # BEGIN CONTROL
 
         
         pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         rate = rospy.Rate(2)
         move = Twist()
-        move.linear.x = 0.2
-        err = cX - cols/2
+        move.linear.x = 0.3
+        err = cX - w/2
         print(err)
         
         
@@ -74,7 +105,7 @@ class image_converter:
            move.angular.z = 0
            print("angular is 0")
         else:
-            move.angular.z = -float(err/75)
+            move.angular.z = -float(err/50)
             print("angular based on err")
             print("the err is:",err)
 
