@@ -13,7 +13,7 @@ from PIL import Image, ImageFont, ImageDraw
 
 path = os.path.dirname(os.path.realpath(__file__)) + "/"
 texture_path = '../media/materials/textures/'
-NUM_PLATES = 16
+NUM_PLATES = 64
 
 with open(path + "plates.csv", 'w') as plates_file:
     csvwriter = csv.writer(plates_file)
