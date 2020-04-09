@@ -22,11 +22,13 @@ class image_converter:
         self.image_sub = rospy.Subscriber("/rrbot/camera1/image_raw",Image,self.callback)
         self.twist = Twist()
         self.cmd_vel_pub = rospy.Publisher("/cmd_vel_pub",Twist, queue_size=1)
+        self.location = rospy.Subscriber("/ground_truth/state",)
  
     def callback(self,data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
             print("got img")
+            
         except CvBridgeError as e:
             rospy.loginfo(e)
         
